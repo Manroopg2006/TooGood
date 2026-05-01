@@ -1,19 +1,23 @@
 import { useState, useCallback } from "react";
-import { QUESTIONS } from "./constants.js";
+import { getQuizQuestions } from "./constants.js";
+
+function pickQuestions(subjectId) {
+  return getQuizQuestions(subjectId);
+}
 import GlobeQuiz from "./GlobeQuiz.jsx";
 import LandingScreen from "./screens/LandingScreen.jsx";
-import MenuScreen from "./screens/MenuScreen.jsx";
 import QuizScreen from "./screens/QuizScreen.jsx";
 import ResultScreen from "./screens/ResultScreen.jsx";
 
 export default function LearnifyApp() {
-  const [screen,           setScreen]           = useState("landing");
-  const [subject,          setSubject]          = useState(null);
-  const [qIndex,           setQIndex]           = useState(0);
-  const [selected,         setSelected]         = useState(null);
-  const [score,            setScore]            = useState(0);
-  const [visible,          setVisible]          = useState(true);
-  const [hoveredSubjectId, setHoveredSubjectId] = useState(null);
+  const [screen,       setScreen]       = useState("landing");
+  const [subject,      setSubject]      = useState(null);
+  const [qIndex,       setQIndex]       = useState(0);
+  const [selected,     setSelected]     = useState(null);
+  const [score,        setScore]        = useState(0);
+  const [visible,      setVisible]      = useState(true);
+  const [quizQuestions,setQuizQuestions]= useState([]);
+
   const [completed, setCompleted] = useState(() => {
     try { return JSON.parse(localStorage.getItem("learnify_completed") || "[]"); }
     catch { return []; }
@@ -30,53 +34,59 @@ export default function LearnifyApp() {
 
   const go = useCallback((nextScreen, setup) => {
     setVisible(false);
-    setTimeout(() => { setup?.(); setScreen(nextScreen); setVisible(true); }, 320);
+    setTimeout(() => { setup?.(); setScreen(nextScreen); setVisible(true); }, 300);
   }, []);
 
-  const goMenu    = useCallback(() => go("menu"),    [go]);
+  // Go back to landing and scroll to the quiz menu section
+  const goMenu = useCallback(() => {
+    if (screen === "landing") {
+      document.getElementById("quiz-menu")?.scrollIntoView({ behavior: "smooth" });
+    } else {
+      go("landing", () => {
+        setTimeout(() => {
+          document.getElementById("quiz-menu")?.scrollIntoView({ behavior: "smooth" });
+        }, 50);
+      });
+    }
+  }, [go, screen]);
+
   const goLanding = useCallback(() => go("landing"), [go]);
 
   const startQuiz = useCallback((subj) => {
     if (subj.id === "geography") {
       setVisible(false);
-      setTimeout(() => { setScreen("globequiz"); setVisible(true); }, 320);
+      setTimeout(() => { setScreen("globequiz"); setVisible(true); }, 300);
       return;
     }
-    go("quiz", () => { setSubject(subj); setQIndex(0); setSelected(null); setScore(0); });
+    const questions = pickQuestions(subj.id);
+    go("quiz", () => { setSubject(subj); setQIndex(0); setSelected(null); setScore(0); setQuizQuestions(questions); });
   }, [go]);
 
   const handleAnswer = useCallback((idx) => {
     if (selected !== null) return;
     setSelected(idx);
-    const questions = QUESTIONS[subject.id];
-    const newScore  = questions[qIndex].ans === idx ? score + 1 : score;
+    const newScore = quizQuestions[qIndex].ans === idx ? score + 1 : score;
     setTimeout(() => {
-      if (qIndex + 1 < questions.length) {
+      if (qIndex + 1 < quizQuestions.length) {
         setQIndex(q => q + 1); setSelected(null); setScore(newScore);
       } else {
-        markCompleted(subject.id);
+        if (newScore === quizQuestions.length) markCompleted(subject.id);
         go("result", () => setScore(newScore));
       }
     }, 900);
-  }, [selected, subject, qIndex, score, go, markCompleted]);
+  }, [selected, quizQuestions, qIndex, score, go, markCompleted, subject]);
 
   if (screen === "globequiz") return (
     <GlobeQuiz
-      onExit={() => go("menu")}
-      onComplete={() => markCompleted("geography")}
+      onExit={goMenu}
+      onComplete={(finalScore) => { if (finalScore === 10) markCompleted("geography"); }}
     />
   );
 
   if (screen === "landing") return (
-    <LandingScreen visible={visible} goMenu={goMenu} />
-  );
-
-  if (screen === "menu") return (
-    <MenuScreen
+    <LandingScreen
       visible={visible}
-      goLanding={goLanding}
-      hoveredSubjectId={hoveredSubjectId}
-      setHoveredSubjectId={setHoveredSubjectId}
+      goMenu={goMenu}
       startQuiz={startQuiz}
       completed={completed}
     />
@@ -89,6 +99,7 @@ export default function LearnifyApp() {
       qIndex={qIndex}
       selected={selected}
       score={score}
+      questions={quizQuestions}
       handleAnswer={handleAnswer}
       goMenu={goMenu}
     />
@@ -99,7 +110,11 @@ export default function LearnifyApp() {
       visible={visible}
       subject={subject}
       score={score}
-      onPlayAgain={() => go("quiz", () => { setSubject(subject); setQIndex(0); setSelected(null); setScore(0); })}
+      total={quizQuestions.length}
+      onPlayAgain={() => {
+        const questions = pickQuestions(subject.id);
+        go("quiz", () => { setSubject(subject); setQIndex(0); setSelected(null); setScore(0); setQuizQuestions(questions); });
+      }}
       onBackToMenu={goMenu}
     />
   );

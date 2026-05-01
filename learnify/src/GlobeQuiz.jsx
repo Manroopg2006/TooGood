@@ -2,6 +2,8 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import gsap from "gsap";
+import QuestionSubmitModal from './components/QuestionSubmitModal';
+
 
 // ── Country dataset ───────────────────────────────────────────────────────────
 const COUNTRIES = [
@@ -79,6 +81,7 @@ export default function GlobeQuiz({ onExit, onComplete }) {
   const [phase,    setPhase]    = useState("intro");  // intro|question|feedback|end
   const [qData,    setQData]    = useState(null);     // { country, type, choices }
   const [qNum,     setQNum]     = useState(0);
+  const scoreRef   = useRef(0);
   const [score,    setScore]    = useState(0);
   const [streak,   setStreak]   = useState(0);
   const [feedback, setFeedback] = useState(null);     // { correct, dist, funFact }
@@ -98,7 +101,7 @@ export default function GlobeQuiz({ onExit, onComplete }) {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(W, H);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setClearColor(0x000008);
+    renderer.setClearColor(0x111D4A);
     mount.appendChild(renderer.domElement);
 
     // Scene & camera
@@ -117,7 +120,7 @@ export default function GlobeQuiz({ onExit, onComplete }) {
     controls.autoRotateSpeed = 0.4;
 
     // Lights
-    scene.add(new THREE.AmbientLight(0x333355, 1.2));
+    scene.add(new THREE.AmbientLight(0x1E2D72, 1.4));
     const sun = new THREE.DirectionalLight(0xfff5e0, 2.2);
     sun.position.set(5, 3, 5);
     scene.add(sun);
@@ -134,7 +137,7 @@ export default function GlobeQuiz({ onExit, onComplete }) {
     }
     const starGeo = new THREE.BufferGeometry();
     starGeo.setAttribute("position", new THREE.BufferAttribute(starPositions, 3));
-    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.18, sizeAttenuation: true })));
+    scene.add(new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xE8845C, size: 0.16, sizeAttenuation: true, transparent: true, opacity: 0.75 })));
 
     // Globe
     const globeGeo = new THREE.SphereGeometry(1, 64, 64);
@@ -159,7 +162,7 @@ export default function GlobeQuiz({ onExit, onComplete }) {
         varying vec3 vNormal;
         void main() {
           float i = pow(0.55 - dot(vNormal, vec3(0,0,1.0)), 5.0);
-          gl_FragColor = vec4(0.85, 0.60, 0.14, 1.0) * clamp(i, 0.0, 1.0);
+          gl_FragColor = vec4(0.91, 0.52, 0.36, 1.0) * clamp(i, 0.0, 1.0);
         }
       `,
       blending:     THREE.AdditiveBlending,
@@ -174,15 +177,15 @@ export default function GlobeQuiz({ onExit, onComplete }) {
     markerGroup.visible = false;
 
     const dotGeo  = new THREE.SphereGeometry(0.018, 16, 16);
-    const dotMat  = new THREE.MeshBasicMaterial({ color: 0xffee00 });
+    const dotMat  = new THREE.MeshBasicMaterial({ color: 0xE8845C });
     const dot     = new THREE.Mesh(dotGeo, dotMat);
 
     const ringGeo = new THREE.RingGeometry(0.028, 0.038, 32);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0xffee00, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
+    const ringMat = new THREE.MeshBasicMaterial({ color: 0xE8845C, side: THREE.DoubleSide, transparent: true, opacity: 0.7 });
     const ring    = new THREE.Mesh(ringGeo, ringMat);
 
     const outerGeo = new THREE.RingGeometry(0.048, 0.056, 32);
-    const outerMat = new THREE.MeshBasicMaterial({ color: 0xffee00, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
+    const outerMat = new THREE.MeshBasicMaterial({ color: 0xE8845C, side: THREE.DoubleSide, transparent: true, opacity: 0.3 });
     const outer    = new THREE.Mesh(outerGeo, outerMat);
 
     markerGroup.add(dot, ring, outer);
@@ -323,10 +326,13 @@ export default function GlobeQuiz({ onExit, onComplete }) {
     markerGroup.visible = false;
     controls.autoRotate = false;
 
-    setScore((s)  => correct ? s + 1 : s);
+    const newScore = scoreRef.current + (correct ? 1 : 0);
+    scoreRef.current = newScore;
+    setScore(newScore);
     setStreak((k) => correct ? k + 1 : 0);
 
     const country = activeCtry.current;
+    const finalScore = newScore;
     setFeedback({ correct, distKm, funFact: country.funFact, name: country.name });
     setPhase("feedback");
 
@@ -336,7 +342,7 @@ export default function GlobeQuiz({ onExit, onComplete }) {
         const next = prev.slice(1);
         if (next.length === 0) {
           setPhase("end");
-          onComplete?.();
+          onComplete?.(finalScore);
         } else {
           askQuestion(next[0], TOTAL_QUESTIONS - next.length);
         }
@@ -362,6 +368,7 @@ export default function GlobeQuiz({ onExit, onComplete }) {
   const restartQuiz = useCallback(() => {
     const { controls } = threeRef.current;
     controls.autoRotate = true;
+    scoreRef.current = 0;
     setScore(0);
     setStreak(0);
     setFeedback(null);
@@ -371,7 +378,7 @@ export default function GlobeQuiz({ onExit, onComplete }) {
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (
-    <div style={{ position: "relative", width: "100%", height: "100vh", background: "#000008", fontFamily: "'Outfit','Inter',sans-serif" }}>
+    <div style={{ position: "relative", width: "100%", height: "100vh", background: "#111D4A", fontFamily: "'Poppins','sans-serif'" }}>
       {/* Three.js canvas */}
       <div ref={mountRef} style={{ width: "100%", height: "100%" }} />
 
@@ -380,9 +387,9 @@ export default function GlobeQuiz({ onExit, onComplete }) {
         onClick={onExit}
         style={{
           position: "absolute", top: 18, left: 18,
-          background: "rgba(0,0,0,0.55)", border: "1px solid rgba(255,255,255,0.2)",
-          borderRadius: 100, color: "#fff", fontFamily: "inherit",
-          fontWeight: 600, fontSize: 13, padding: "8px 18px",
+          background: "rgba(30,45,114,0.75)", border: "1px solid rgba(232,132,92,0.35)",
+          borderRadius: 100, color: "#E8845C", fontFamily: "inherit",
+          fontWeight: 700, fontSize: 13, padding: "8px 18px",
           cursor: "pointer", backdropFilter: "blur(8px)",
           display: "flex", alignItems: "center", gap: 6,
         }}
@@ -405,12 +412,12 @@ export default function GlobeQuiz({ onExit, onComplete }) {
             { label: "Q",      value: `${qNum}/${TOTAL_QUESTIONS}` },
           ].map(({ label, value }) => (
             <div key={label} style={{
-              background: "rgba(0,0,0,0.6)", border: "1px solid rgba(255,255,255,0.18)",
+              background: "rgba(30,45,114,0.75)", border: "1px solid rgba(232,132,92,0.3)",
               borderRadius: 12, padding: "8px 16px", textAlign: "center",
               backdropFilter: "blur(10px)",
             }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em", fontWeight: 700 }}>{label}</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#fff", lineHeight: 1.2 }}>{value}</div>
+              <div style={{ fontSize: 10, color: "rgba(232,132,92,0.65)", letterSpacing: "0.1em", fontWeight: 700 }}>{label}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#E8845C", lineHeight: 1.2 }}>{value}</div>
             </div>
           ))}
         </div>
@@ -420,10 +427,10 @@ export default function GlobeQuiz({ onExit, onComplete }) {
       {phase === "intro" && (
         <Panel center>
           <div style={{ fontSize: 42, marginBottom: 8 }}>🌍</div>
-          <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 800, color: "#fff" }}>Geography Globe</h2>
-          <p style={{ margin: "0 0 28px", color: "rgba(255,255,255,0.6)", fontSize: 14, lineHeight: 1.6 }}>
+          <h2 style={{ margin: "0 0 8px", fontSize: 26, fontWeight: 800, color: "#E8845C", fontFamily: "'Poppins',sans-serif" }}>Geography Globe</h2>
+          <p style={{ margin: "0 0 28px", color: "rgba(232,132,92,0.7)", fontSize: 14, lineHeight: 1.6, fontFamily: "'Poppins',sans-serif" }}>
             Answer questions about countries by clicking on the globe or choosing from options.<br />
-            <strong style={{ color: "rgba(255,255,255,0.85)" }}>10 questions · 3 question types</strong>
+            <strong style={{ color: "#E8845C" }}>10 questions · 3 question types</strong>
           </p>
           <PillBtn onClick={startQuiz}>Start Quiz</PillBtn>
         </Panel>
@@ -435,10 +442,10 @@ export default function GlobeQuiz({ onExit, onComplete }) {
           {qData.type === 0 && (
             <>
               <QuestionLabel>Click on the globe to locate:</QuestionLabel>
-              <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "#fff" }}>
+              <h3 style={{ margin: "0 0 8px", fontSize: 22, fontWeight: 800, color: "#E8845C", fontFamily: "'Poppins',sans-serif" }}>
                 {qData.country.name}
               </h3>
-              <p style={{ margin: 0, color: "rgba(255,255,255,0.5)", fontSize: 13 }}>
+              <p style={{ margin: 0, color: "rgba(232,132,92,0.6)", fontSize: 13, fontFamily: "'Poppins',sans-serif" }}>
                 Tap anywhere on the globe surface — within 800 km scores a point
               </p>
             </>
@@ -467,14 +474,14 @@ export default function GlobeQuiz({ onExit, onComplete }) {
         <BottomPanel accent={feedback.correct ? "#22c55e" : "#ef4444"}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
             <span style={{ fontSize: 24 }}>{feedback.correct ? "✅" : "❌"}</span>
-            <span style={{ fontWeight: 800, fontSize: 18, color: feedback.correct ? "#4ade80" : "#f87171" }}>
+            <span style={{ fontWeight: 800, fontSize: 18, color: feedback.correct ? "#4ade80" : "#f87171", fontFamily: "'Poppins',sans-serif" }}>
               {feedback.correct
                 ? (feedback.distKm !== null ? `Spot on! ${Math.round(feedback.distKm)} km away` : "Correct!")
                 : (feedback.distKm !== null ? `Miss — ${Math.round(feedback.distKm)} km away` : "Not quite!")}
             </span>
           </div>
-          <p style={{ margin: 0, color: "rgba(255,255,255,0.7)", fontSize: 13, lineHeight: 1.6 }}>
-            <strong style={{ color: "#a5b4fc" }}>Fun fact: </strong>{feedback.funFact}
+          <p style={{ margin: 0, color: "rgba(232,132,92,0.75)", fontSize: 13, lineHeight: 1.6, fontFamily: "'Poppins',sans-serif" }}>
+            <strong style={{ color: "#E8845C" }}>Fun fact: </strong>{feedback.funFact}
           </p>
         </BottomPanel>
       )}
@@ -485,13 +492,13 @@ export default function GlobeQuiz({ onExit, onComplete }) {
           <div style={{ fontSize: 48, marginBottom: 8 }}>
             {score >= 8 ? "🏆" : score >= 5 ? "🌟" : "🌱"}
           </div>
-          <h2 style={{ margin: "0 0 4px", fontSize: 28, fontWeight: 800, color: "#fff" }}>
+          <h2 style={{ margin: "0 0 4px", fontSize: 28, fontWeight: 900, color: "#E8845C", fontFamily: "'Poppins',sans-serif" }}>
             {score}/{TOTAL_QUESTIONS}
           </h2>
-          <p style={{ margin: "0 0 6px", fontSize: 16, color: score >= 8 ? "#4ade80" : score >= 5 ? "#facc15" : "#fb923c", fontWeight: 700 }}>
+          <p style={{ margin: "0 0 6px", fontSize: 16, color: score >= 8 ? "#4ade80" : score >= 5 ? "#E8845C" : "rgba(232,132,92,0.7)", fontWeight: 700, fontFamily: "'Poppins',sans-serif" }}>
             {score >= 8 ? "Geography Master!" : score >= 5 ? "Great Explorer!" : "Keep Adventuring!"}
           </p>
-          <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(255,255,255,0.5)" }}>
+          <p style={{ margin: "0 0 24px", fontSize: 13, color: "rgba(232,132,92,0.55)", fontFamily: "'Poppins',sans-serif" }}>
             Best streak: 🔥 {streak}
           </p>
           <div style={{ display: "flex", gap: 12 }}>
@@ -515,8 +522,8 @@ function Panel({ children, center }) {
       pointerEvents: "none",
     }}>
       <div style={{
-        background: "rgba(10,10,30,0.82)", backdropFilter: "blur(16px)",
-        border: "1px solid rgba(255,255,255,0.12)", borderRadius: 20,
+        background: "rgba(30,45,114,0.88)", backdropFilter: "blur(16px)",
+        border: "1px solid rgba(232,132,92,0.3)", borderRadius: 20,
         padding: "32px 36px", textAlign: "center", maxWidth: 400, width: "100%",
         pointerEvents: "auto",
       }}>
@@ -533,8 +540,8 @@ function BottomPanel({ children, accent }) {
       padding: "0 20px 24px",
     }}>
       <div style={{
-        background: "rgba(8,8,24,0.88)", backdropFilter: "blur(16px)",
-        border: `1px solid ${accent || "rgba(255,255,255,0.12)"}`,
+        background: "rgba(30,45,114,0.88)", backdropFilter: "blur(16px)",
+        border: `1px solid ${accent || "rgba(232,132,92,0.25)"}`,
         borderRadius: 18, padding: "20px 24px", maxWidth: 600, margin: "0 auto",
       }}>
         {children}
@@ -545,7 +552,7 @@ function BottomPanel({ children, accent }) {
 
 function QuestionLabel({ children }) {
   return (
-    <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, color: "#a5b4fc", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+    <p style={{ margin: "0 0 6px", fontSize: 12, fontWeight: 700, color: "#E8845C", letterSpacing: "0.08em", textTransform: "uppercase" }}>
       {children}
     </p>
   );
@@ -566,9 +573,9 @@ function ChoiceGrid({ choices, correct, onAnswer }) {
         const isCorrect  = c === correct;
         const isSelected = c === picked;
         const revealed   = !!picked;
-        let bg    = "rgba(255,255,255,0.07)";
-        let border = "1px solid rgba(255,255,255,0.15)";
-        let color  = "#fff";
+        let bg    = "rgba(232,132,92,0.12)";
+        let border = "1px solid rgba(232,132,92,0.3)";
+        let color  = "#E8845C";
         if (revealed && isCorrect)  { bg = "rgba(34,197,94,0.25)"; border = "1px solid #22c55e"; color = "#4ade80"; }
         if (revealed && isSelected && !isCorrect) { bg = "rgba(239,68,68,0.25)"; border = "1px solid #ef4444"; color = "#f87171"; }
 
@@ -597,8 +604,8 @@ function PillBtn({ children, onClick, secondary }) {
     <button
       onClick={onClick}
       style={{
-        background: secondary ? "rgba(255,255,255,0.08)" : "#4B3BF5",
-        color: "#fff", border: secondary ? "1px solid rgba(255,255,255,0.2)" : "none",
+        background: secondary ? "rgba(232,132,92,0.12)" : "#E8845C",
+        color: secondary ? "#E8845C" : "#1E2D72", border: secondary ? "1px solid rgba(232,132,92,0.35)" : "none",
         borderRadius: 100, fontFamily: "inherit", fontWeight: 700,
         fontSize: 15, padding: "12px 32px", cursor: "pointer",
         transition: "opacity 0.2s",

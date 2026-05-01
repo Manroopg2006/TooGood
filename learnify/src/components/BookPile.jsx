@@ -5,10 +5,10 @@ export default function BookPile({ completed }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
       <p style={{
-        fontFamily: "'Playfair Display', Georgia, serif",
-        color: P.brownMuted, fontSize: 13,
+        fontFamily: "'Poppins', sans-serif",
+        color: P.navy, fontSize: 13,
         letterSpacing: "0.1em", textTransform: "uppercase",
-        margin: "0 0 28px", fontWeight: 400, fontStyle: "italic",
+        margin: "0 0 28px", fontWeight: 700, opacity: 0.6,
         textAlign: "center",
       }}>
         {books.length === 0 ? "Completed Quizzes" : `${books.length} of ${SUBJECTS.length} Complete`}
@@ -24,7 +24,7 @@ export default function BookPile({ completed }) {
           position: "absolute", bottom: 0, left: "50%",
           transform: "translateX(-50%)",
           width: 236, height: 10,
-          background: `linear-gradient(180deg, ${P.parchmentDark} 0%, ${P.brownMuted}55 100%)`,
+          background: `linear-gradient(180deg, ${P.salmonDark} 0%, rgba(30,45,114,0.4) 100%)`,
           borderRadius: "0 0 5px 5px",
           boxShadow: "0 6px 18px rgba(92,61,17,0.35)",
         }} />
@@ -33,7 +33,7 @@ export default function BookPile({ completed }) {
           <div style={{
             position: "absolute", bottom: 20, left: 0, right: 0,
             textAlign: "center", color: P.brownMuted,
-            fontSize: 12, opacity: 0.42, fontStyle: "italic", lineHeight: 1.6,
+            fontSize: 12, opacity: 0.5, fontFamily: "'Poppins', sans-serif", lineHeight: 1.6,
           }}>
             Your shelf is empty.<br />Complete quizzes to<br />earn your books!
           </div>
@@ -60,7 +60,7 @@ export default function BookPile({ completed }) {
                   color: subj.bookTextColor || P.parchment,
                   fontSize: 10, fontWeight: 700,
                   letterSpacing: "0.12em", textTransform: "uppercase",
-                  fontFamily: "'Outfit', sans-serif",
+                  fontFamily: "'Poppins', sans-serif",
                 }}>
                   {subj.label}
                 </span>

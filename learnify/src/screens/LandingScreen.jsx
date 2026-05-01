@@ -1,384 +1,428 @@
 import { P, SUBJECTS } from "../constants";
 import { FontLink, GlobalStyles } from "../GlobalStyles";
+import geographyImg from "../assets/geography.png";
+import numbersImg from "../assets/numbers.png";
+import logicImg from "../assets/logic.png";
+import readingImg from "../assets/reading.png";
+import historyImg from "../assets/history.png";
+import scienceImg from "../assets/science.png";
 
-const FEATURES = [
-  {
-    icon: "🌍",
-    title: "Interactive Globe",
-    desc: "Spin a live 3D Earth, click countries, and test your geography knowledge in real time.",
-  },
-  {
-    icon: "🧠",
-    title: "Six Subjects",
-    desc: "Geography, Math, Logic, Science, History, and Language — a different challenge every time.",
-  },
-  {
-    icon: "📚",
-    title: "Your Bookshelf",
-    desc: "Every subject you complete adds a book to your shelf. Fill it up, one quiz at a time.",
-  },
-  {
-    icon: "⚡",
-    title: "Instant Feedback",
-    desc: "See exactly which answers were right or wrong the moment you choose, then jump straight back in.",
-  },
-];
+const CARD_IMAGES = {
+  geography: geographyImg,
+  math:      numbersImg,
+  logic:     logicImg,
+  language:  readingImg,
+  history:   historyImg,
+  science:   scienceImg,
+};
 
-function scrollToIntro() {
-  document.getElementById("lamaify-intro")?.scrollIntoView({ behavior: "smooth" });
+// ── Per-subject card metadata ─────────────────────────────────────────────────
+const CARD_META = {
+  geography: { title: "World Geography", desc: "Capitals, continents, and landmarks — test your global knowledge.", difficulty: "Bet You Can't" },
+  math:      { title: "Number Cruncher",  desc: "Arithmetic, algebra, and mental math — crunch the numbers.",         difficulty: "Too Hard For You" },
+  logic:     { title: "Brain Teasers",    desc: "Sequences, deductions, and patterns — sharpen your reasoning.",      difficulty: "Think You Can?" },
+  science:   { title: "Science Facts",    desc: "Chemistry, physics, and biology — how well do you know science?",    difficulty: "Prove It Then" },
+  history:   { title: "Through the Ages", desc: "Wars, empires, and milestones — journey through human history.",     difficulty: "Dare You Try" },
+  language:  { title: "Word Mastery",     desc: "Grammar, vocabulary, and spelling — are you a word wizard?",         difficulty: "Easy Win... Right?", isNew: true },
+};
+
+function getDiffStyle(difficulty) {
+  const d = difficulty.toLowerCase();
+  if (d.includes("easy") || d.includes("prove") || d.includes("win"))
+    return { bg: P.salmon, color: P.navy };
+  if (d.includes("hard") || d.includes("dare") || d.includes("too"))
+    return { bg: "#111D4A", color: P.salmon };
+  return { bg: "rgba(232,132,92,0.18)", color: P.salmon };
 }
 
-export default function LandingScreen({ visible, goMenu }) {
+// ── Quiz card (inline) ────────────────────────────────────────────────────────
+function QuizCard({ subj, onClick, completed }) {
+  const meta  = CARD_META[subj.id];
+  const diff  = getDiffStyle(meta.difficulty);
+  const isDone = completed.includes(subj.id);
+
+  return (
+    <div
+      data-course={subj.id}
+      onClick={onClick}
+      style={{
+        borderRadius: 18, overflow: "hidden",
+        background: "#1a2454",
+        boxShadow: "0 4px 24px rgba(0,0,0,0.35)",
+        cursor: "pointer",
+        display: "flex", flexDirection: "column",
+        transition: "transform 0.22s ease, box-shadow 0.22s ease",
+        position: "relative",
+        border: isDone ? `2px solid ${P.salmon}` : "2px solid transparent",
+      }}
+      onMouseEnter={e => {
+        e.currentTarget.style.transform = "translateY(-6px)";
+        e.currentTarget.style.boxShadow = `0 14px 40px rgba(0,0,0,0.5), 0 0 0 2px ${P.salmon}55`;
+      }}
+      onMouseLeave={e => {
+        e.currentTarget.style.transform = "";
+        e.currentTarget.style.boxShadow = "0 4px 24px rgba(0,0,0,0.35)";
+      }}
+    >
+      {meta.isNew && (
+        <div style={{
+          position: "absolute", top: 14, right: 14, zIndex: 10,
+          background: P.salmon, color: P.navy,
+          fontSize: 11, fontWeight: 800, fontFamily: "'Poppins', sans-serif",
+          letterSpacing: "0.08em", textTransform: "uppercase",
+          padding: "4px 10px", borderRadius: 100,
+          boxShadow: `0 2px 10px rgba(232,132,92,0.5)`,
+        }}>NEW!</div>
+      )}
+      {isDone && (
+        <div style={{
+          position: "absolute", top: 14, left: 14, zIndex: 10,
+          background: "#22c55e", color: "#fff",
+          fontSize: 11, fontWeight: 800, fontFamily: "'Poppins', sans-serif",
+          letterSpacing: "0.06em", padding: "4px 10px", borderRadius: 100,
+        }}>✓ 100%</div>
+      )}
+
+      <div style={{
+        height: 148,
+        background: `linear-gradient(160deg, #111D4A 0%, #1E2D72 100%)`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        position: "relative", overflow: "hidden", flexShrink: 0,
+      }}>
+        {CARD_IMAGES[subj.id] ? (
+          <img
+            src={CARD_IMAGES[subj.id]}
+            alt={subj.label}
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+          />
+        ) : (
+          <>
+            <div style={{
+              position: "absolute", width: 110, height: 110, borderRadius: "50%",
+              background: `rgba(232,132,92,0.08)`, top: "50%", left: "50%",
+              transform: "translate(-50%,-50%)",
+            }} />
+            <span style={{ fontSize: 52, position: "relative", zIndex: 1, userSelect: "none" }}>
+              {subj.icon}
+            </span>
+          </>
+        )}
+      </div>
+
+      <div style={{ padding: "18px 20px 20px", display: "flex", flexDirection: "column", flex: 1 }}>
+        <p style={{
+          margin: "0 0 6px", fontSize: 10, fontWeight: 700,
+          letterSpacing: "0.14em", textTransform: "uppercase",
+          color: P.salmon, opacity: 0.8, fontFamily: "'Poppins', sans-serif",
+        }}>QUIZ · {subj.label.toUpperCase()}</p>
+        <h3 style={{
+          margin: "0 0 8px", fontSize: 17, fontWeight: 700,
+          color: "#ffffff", fontFamily: "'Poppins', sans-serif", lineHeight: 1.3,
+        }}>{meta.title}</h3>
+        <p style={{
+          margin: "0 0 16px", fontSize: 13, lineHeight: 1.6,
+          color: "rgba(255,255,255,0.5)", fontFamily: "'Poppins', sans-serif", flex: 1,
+        }}>{meta.desc}</p>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          <span style={{
+            background: diff.bg, color: diff.color,
+            fontSize: 11, fontWeight: 700, fontFamily: "'Poppins', sans-serif",
+            letterSpacing: "0.05em", padding: "4px 12px", borderRadius: 100,
+          }}>{meta.difficulty}</span>
+          <span style={{
+            fontSize: 11, fontWeight: 600,
+            color: "rgba(255,255,255,0.4)", fontFamily: "'Poppins', sans-serif",
+          }}>10 questions</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Mascot SVG ────────────────────────────────────────────────────────────────
+function TooGoodMascot() {
+  return (
+    <svg
+      viewBox="0 0 300 300"
+      style={{ width: "100%", height: "100%", display: "block" }}
+      aria-hidden="true"
+    >
+      <defs>
+        <clipPath id="tg-left-lens">
+          <circle cx="92" cy="126" r="51" />
+        </clipPath>
+        <clipPath id="tg-right-lens">
+          <circle cx="208" cy="126" r="51" />
+        </clipPath>
+      </defs>
+
+      {/* Face */}
+      <circle cx="150" cy="150" r="145" fill={P.navy} />
+
+      {/* Left lens frame */}
+      <circle cx="92" cy="126" r="53" fill={P.navy} stroke={P.salmon} strokeWidth="5" />
+
+      {/* Left lens diagonal stripes (~40°) */}
+      <g clipPath="url(#tg-left-lens)">
+        {[-3,-2,-1,0,1,2,3,4,5].map(i => (
+          <line
+            key={i}
+            x1={26 + i * 20} y1="72"
+            x2={26 + i * 20 + 90} y2="180"
+            stroke={P.salmon} strokeWidth="7.5" strokeLinecap="round"
+          />
+        ))}
+      </g>
+
+      {/* Right lens frame */}
+      <circle cx="208" cy="126" r="53" fill={P.navy} stroke={P.salmon} strokeWidth="5" />
+
+      {/* Right lens diagonal stripes (~40°) */}
+      <g clipPath="url(#tg-right-lens)">
+        {[-3,-2,-1,0,1,2,3,4,5].map(i => (
+          <line
+            key={i}
+            x1={142 + i * 20} y1="72"
+            x2={142 + i * 20 + 90} y2="180"
+            stroke={P.salmon} strokeWidth="7.5" strokeLinecap="round"
+          />
+        ))}
+      </g>
+
+      {/* Bridge */}
+      <line x1="145" y1="116" x2="155" y2="116" stroke={P.salmon} strokeWidth="5.5" strokeLinecap="round" />
+
+      {/* Left temple arm */}
+      <line x1="39" y1="117" x2="15" y2="112" stroke={P.salmon} strokeWidth="5" strokeLinecap="round" />
+
+      {/* Right temple arm */}
+      <line x1="261" y1="117" x2="285" y2="112" stroke={P.salmon} strokeWidth="5" strokeLinecap="round" />
+
+      {/* Smirk */}
+      <path
+        d="M 108 198 Q 152 218 192 196"
+        stroke={P.salmon} strokeWidth="6" fill="none" strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+// ── Combined Landing + Menu Page ──────────────────────────────────────────────
+export default function LandingScreen({ visible, goMenu, startQuiz, completed = [] }) {
   const fadeStyle = {
-    opacity: visible ? 1 : 0,
-    transform: visible ? "translateY(0) scale(1)" : "translateY(10px) scale(0.98)",
-    transition: "opacity 0.32s ease, transform 0.32s ease",
+    opacity:       visible ? 1 : 0,
+    transform:     visible ? "translateY(0) scale(1)" : "translateY(10px) scale(0.98)",
+    transition:    "opacity 0.3s ease, transform 0.3s ease",
+    pointerEvents: visible ? "auto" : "none",
     width: "100%",
-    fontFamily: "'Outfit', 'Inter', sans-serif",
+    fontFamily: "'Poppins', sans-serif",
+  };
+
+  const scrollToMenu = () => {
+    document.getElementById("quiz-menu")?.scrollIntoView({ behavior: "smooth" });
   };
 
   return (
-    <div style={{ ...fadeStyle, background: P.parchment }}>
+    <div style={{ ...fadeStyle }}>
       <FontLink />
       <GlobalStyles />
 
-      {/* ── HERO (full viewport) ──────────────────────────────────────────────── */}
-      <div style={{
-        minHeight: "100vh", position: "relative", overflow: "hidden",
-        display: "flex", flexDirection: "column",
-        alignItems: "center", justifyContent: "center",
-      }}>
+      {/* ── Hero section ── */}
+      <div style={{ background: P.salmon, position: "relative", overflow: "hidden", minHeight: "100vh" }}>
 
-        {/* Background float layer */}
-        <div style={{ position:"absolute", inset:0, pointerEvents:"none", overflow:"hidden", zIndex:0 }}>
-          <div style={{ position:"absolute", top:"5%", left:"3%", width:210, height:210, borderRadius:"50%",
-            background:"radial-gradient(circle at 40% 38%, #E8C060 0%, #C9A84C 52%, #8B6820 100%)",
-            opacity:0.2, willChange:"transform",
-            animation:"bgFloat1 13s ease-in-out infinite alternate", animationDelay:"0.5s" }} />
-          <div style={{ position:"absolute", top:"20%", left:"5%", width:175, height:62, borderRadius:"100px",
-            background:"linear-gradient(120deg, #DAA520 0%, #F0C840 58%, #C9A84C 100%)",
-            opacity:0.2, willChange:"transform",
-            animation:"bgFloat2 9s ease-in-out infinite alternate", animationDelay:"2.2s" }} />
-          <div style={{ position:"absolute", top:"10%", left:"44%", width:78, height:78, borderRadius:"50%",
-            background:"radial-gradient(circle at 38% 35%, #FBF3E0 0%, #E8C860 50%, #C9A84C 100%)",
-            opacity:0.28, willChange:"transform",
-            animation:"bgFloat3 7s ease-in-out infinite alternate", animationDelay:"1s" }} />
-          <div style={{ position:"absolute", top:"38%", left:"34%", width:265, height:240,
-            borderRadius:"55% 45% 62% 38% / 46% 57% 43% 54%",
-            background:"radial-gradient(circle at 42% 40%, #8B6020 0%, #5C3D11 48%, #3A2208 100%)",
-            opacity:0.1, willChange:"transform",
-            animation:"bgFloat4 17s ease-in-out infinite alternate", animationDelay:"0s" }} />
-          <div style={{ position:"absolute", bottom:"16%", left:"11%", width:148, height:53, borderRadius:"100px",
-            background:"linear-gradient(110deg, #DAA520 0%, #C9A84C 54%, #A88030 100%)",
-            opacity:0.22, willChange:"transform",
-            animation:"bgFloat5 11s ease-in-out infinite alternate", animationDelay:"3.5s" }} />
-          <div style={{ position:"absolute", top:"62%", left:"58%", width:68, height:68, borderRadius:"50%",
-            background:"radial-gradient(circle at 36% 34%, #F0DBA8 0%, #E0C070 53%, #C9A84C 100%)",
-            opacity:0.3, willChange:"transform",
-            animation:"bgFloat6 19s ease-in-out infinite alternate", animationDelay:"4.5s" }} />
-          <div style={{ position:"absolute", top:"22%", left:"55%", width:150, height:138,
-            borderRadius:"63% 37% 54% 46% / 55% 48% 52% 45%",
-            background:"linear-gradient(135deg, #C9A84C 0%, #8B6020 44%, #DAA520 100%)",
-            opacity:0.16, willChange:"transform",
-            animation:"bgFloat7 23s ease-in-out infinite alternate", animationDelay:"1.8s" }} />
-        </div>
-
-        {/* Navigation */}
-        <nav style={{
-          position:"absolute", top:0, left:0, right:0,
-          display:"flex", alignItems:"center", justifyContent:"space-between",
-          padding:"28px 40px", zIndex:10, pointerEvents:"none",
-        }}>
+        {/* Floating background shapes */}
+        <div style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden", zIndex: 0 }}>
           <div style={{
-            width:48, height:48, borderRadius:"50%",
-            background:"linear-gradient(135deg, #DAA520, #8B5A00)",
-            display:"flex", alignItems:"center", justifyContent:"center",
-            boxShadow:"0 4px 18px rgba(218,165,32,0.45)",
-            pointerEvents:"auto", cursor:"pointer", flexShrink:0,
-          }}>
-            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-              <polygon points="5,2 15,9 5,16" fill="#FBF3E0" />
-            </svg>
-          </div>
-          <span style={{
-            color: P.brown, fontWeight:700, fontSize:12,
-            letterSpacing:"0.13em", textTransform:"uppercase",
-            fontFamily:"'Outfit', sans-serif", pointerEvents:"auto", cursor:"pointer",
-          }}>
-            Get In Touch
-          </span>
-        </nav>
-
-        {/* Large matte gold sphere — top-right */}
-        <div style={{
-          position:"absolute", top:"-10%", right:"-8%",
-          width:"min(440px, 56vw)", height:"min(440px, 56vw)", borderRadius:"50%",
-          background:"radial-gradient(circle at 36% 33%, #F0D060 0%, #C9A84C 42%, #8B6820 78%)",
-          boxShadow:"inset -35px -35px 90px rgba(58,34,8,0.42), inset 12px 12px 35px rgba(255,240,180,0.12)",
-          zIndex:1, willChange:"transform",
-          animation:"floatLargeSphere 10s ease-in-out infinite alternate",
-        }} />
-
-        {/* Goldenrod pill — left */}
-        <div style={{
-          position:"absolute", top:"30%", left:"-90px", width:250, height:95, borderRadius:"100px",
-          background:"radial-gradient(circle at 38% 36%, #F5E8A0 0%, #DAA520 52%, #C9A84C 100%)",
-          boxShadow:"inset -10px -10px 32px rgba(58,34,8,0.22), inset 5px 5px 16px rgba(255,240,160,0.25), 10px 10px 34px rgba(58,34,8,0.18)",
-          zIndex:2, willChange:"transform",
-          animation:"floatPill 8s ease-in-out infinite alternate", animationDelay:"1s",
-        }} />
-
-        {/* Warm ribbon — mid-right */}
-        <div style={{
-          position:"absolute", top:"43%", right:"-20px",
-          width:"min(360px,46vw)", height:115,
-          borderRadius:"80px 18px 65px 35px / 42px 18px 65px 35px",
-          background:"linear-gradient(120deg, #DAA520 0%, #C9A84C 26%, #F5E6C8 50%, #E8B840 74%, #DAA520 100%)",
-          backgroundSize:"300% 300%", opacity:0.75,
-          zIndex:2, willChange:"transform",
-          animation:"floatRibbon 12s ease-in-out infinite alternate, shimmer 6s linear infinite",
-          animationDelay:"2s, 0s",
-        }} />
-
-        {/* Warm holographic sphere — center-bottom */}
-        <div style={{ position:"absolute", bottom:"1%", left:"50%", transform:"translateX(-50%)", zIndex:2 }}>
+            position: "absolute", top: "-8%", right: "-6%",
+            width: "min(400px,52vw)", height: "min(400px,52vw)", borderRadius: "50%",
+            background: P.navyDark, opacity: 0.20,
+            animation: "bgFloat1 13s ease-in-out infinite alternate",
+          }} />
           <div style={{
-            width:"min(210px,29vw)", height:"min(210px,29vw)", borderRadius:"50%",
-            background:"radial-gradient(circle at 30% 28%, #FFFFFF 0%, #F5E8A0 20%, #DAA520 44%, #C9A84C 68%, #8B6820 100%)",
-            backgroundSize:"220% 220%",
-            boxShadow:"inset -14px -14px 40px rgba(58,34,8,0.26), inset 6px 6px 20px rgba(255,240,180,0.3), 0 0 55px rgba(218,165,32,0.38)",
-            willChange:"transform",
-            animation:"floatIridescent 9s ease-in-out infinite alternate, shimmer 4s linear infinite",
-            animationDelay:"0.5s, 0s",
+            position: "absolute", top: "18%", left: "-70px", width: 230, height: 88, borderRadius: "100px",
+            background: P.navy, opacity: 0.18,
+            animation: "bgFloat2 9s ease-in-out infinite alternate", animationDelay: "2.2s",
+          }} />
+          <div style={{
+            position: "absolute", top: "9%", left: "42%", width: 72, height: 72, borderRadius: "50%",
+            background: P.navyLight, opacity: 0.22,
+            animation: "bgFloat3 7s ease-in-out infinite alternate", animationDelay: "1s",
+          }} />
+          <div style={{
+            position: "absolute", bottom: "12%", left: "8%", width: 148, height: 50, borderRadius: "100px",
+            background: P.navy, opacity: 0.17,
+            animation: "bgFloat5 11s ease-in-out infinite alternate", animationDelay: "3.5s",
+          }} />
+          <div style={{
+            position: "absolute", top: "55%", left: "55%", width: 64, height: 64, borderRadius: "50%",
+            background: P.navyLight, opacity: 0.24,
+            animation: "bgFloat6 19s ease-in-out infinite alternate", animationDelay: "4.5s",
+          }} />
+          <div style={{
+            position: "absolute", top: "20%", left: "52%", width: 140, height: 130,
+            borderRadius: "63% 37% 54% 46% / 55% 48% 52% 45%",
+            background: P.navy, opacity: 0.15,
+            animation: "bgFloat7 23s ease-in-out infinite alternate", animationDelay: "1.8s",
+          }} />
+          <div style={{
+            position: "absolute", bottom: "8%", right: "8%",
+            width: "min(100px,13vw)", height: "min(100px,13vw)", borderRadius: "50%",
+            background: P.navyLight, opacity: 0.18,
+            animation: "floatSmallSphere 6s ease-in-out infinite alternate", animationDelay: "3s",
           }} />
         </div>
 
-        {/* Pale parchment sphere — bottom-right */}
-        <div style={{
-          position:"absolute", bottom:"9%", right:"9%",
-          width:"min(115px,15vw)", height:"min(115px,15vw)", borderRadius:"50%",
-          background:"radial-gradient(circle at 35% 32%, #FBF3E0 0%, #E8D5A8 48%, #C9A84C 84%)",
-          boxShadow:"inset -9px -9px 26px rgba(58,34,8,0.18), inset 4px 4px 13px rgba(255,240,180,0.2), 7px 7px 22px rgba(58,34,8,0.14)",
-          zIndex:2, willChange:"transform",
-          animation:"floatSmallSphere 6s ease-in-out infinite alternate", animationDelay:"3s",
-        }} />
-
         {/* Hero content */}
-        <div style={{ position:"relative", zIndex:5, textAlign:"center",
-          display:"flex", flexDirection:"column", alignItems:"center", padding:"0 20px" }}>
-          <h1 style={{ margin:0, lineHeight:0.9, userSelect:"none" }}>
-            <span style={{
-              fontSize:"clamp(80px,12vw,160px)", fontWeight:900,
-              color: P.brownDark, fontStyle:"normal",
-              fontFamily:"'Playfair Display', Georgia, serif",
-              display:"inline", letterSpacing:"-0.03em",
-            }}>Lama</span><span style={{
-              fontSize:"clamp(80px,12vw,160px)", fontWeight:700,
-              color: P.gold, fontStyle:"italic",
-              fontFamily:"'Playfair Display', Georgia, serif",
-              display:"inline", letterSpacing:"-0.03em",
-            }}>ify</span>
-          </h1>
-
-          <p style={{
-            marginTop:16, color: P.brownMuted, fontSize:15, fontWeight:500,
-            letterSpacing:"0.08em", fontStyle:"italic",
-            fontFamily:"'Playfair Display', Georgia, serif",
-          }}>
-            Learn · Play · Level Up
-          </p>
-
-          {/* Wax-seal CTA — now scrolls to intro */}
-          <button
-            onClick={scrollToIntro}
-            style={{
-              marginTop:44, background:"transparent",
-              color: P.brown, border:`2px solid ${P.gold}`,
-              borderRadius:100, padding:"15px 58px", fontSize:15,
-              fontWeight:700, fontFamily:"'Outfit', sans-serif",
-              cursor:"pointer", letterSpacing:"0.07em",
-              animation:"waxPulse 3s ease-in-out infinite",
-              transition:"background 0.22s, color 0.22s, transform 0.18s",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = P.gold;
-              e.currentTarget.style.color = P.cream;
-              e.currentTarget.style.animation = "none";
-              e.currentTarget.style.transform = "translateY(-2px)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "transparent";
-              e.currentTarget.style.color = P.brown;
-              e.currentTarget.style.animation = "waxPulse 3s ease-in-out infinite";
-              e.currentTarget.style.transform = "";
-            }}
-          >
-            Lets learn
-          </button>
-
-          {/* Scroll hint chevron */}
+        <div style={{
+          position: "relative", zIndex: 1,
+          minHeight: "100vh",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          padding: "40px 6vw",
+        }}>
           <div style={{
-            marginTop:36, color: P.goldMuted, opacity:0.6,
-            animation:"scrollBounce 2s ease-in-out infinite",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            gap: "clamp(32px, 5vw, 72px)", flexWrap: "wrap",
+            maxWidth: 1100, width: "100%",
           }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M6 9L12 15L18 9" stroke="currentColor" strokeWidth="2"
-                strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            {/* Mascot */}
+            <div style={{
+              width: "clamp(200px, 30vw, 340px)",
+              height: "clamp(200px, 30vw, 340px)",
+              flexShrink: 0,
+            }}>
+              <TooGoodMascot />
+            </div>
+
+            {/* Text + CTA */}
+            <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-start" }}>
+              <h1 style={{
+                margin: 0,
+                fontFamily: "'Poppins', sans-serif",
+                fontWeight: 900,
+                fontSize: "clamp(56px, 9vw, 112px)",
+                color: P.navy, lineHeight: 1, letterSpacing: "-0.03em", userSelect: "none",
+              }}>TooGood?</h1>
+
+              <p style={{
+                margin: "10px 0 0",
+                fontFamily: "'Poppins', sans-serif",
+                fontStyle: "italic", fontWeight: 500,
+                fontSize: "clamp(18px, 2.6vw, 32px)",
+                color: P.navy, opacity: 0.75, letterSpacing: "0.01em",
+              }}>Prove It!</p>
+
+              <button
+                onClick={scrollToMenu}
+                style={{
+                  marginTop: "clamp(28px, 4vw, 48px)",
+                  background: P.navy, color: P.white,
+                  border: "none", borderRadius: 100,
+                  padding: "16px 52px",
+                  fontSize: "clamp(14px, 1.4vw, 17px)",
+                  fontWeight: 700, fontFamily: "'Poppins', sans-serif",
+                  cursor: "pointer", letterSpacing: "0.05em",
+                  boxShadow: `0 8px 28px rgba(30,45,114,0.35)`,
+                  transition: "background 0.22s, transform 0.18s",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = P.salmonDark;
+                  e.currentTarget.style.transform = "translateY(-2px)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = P.navy;
+                  e.currentTarget.style.transform = "";
+                }}
+              >Get Started</button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ── INTRO SECTION ─────────────────────────────────────────────────────── */}
-      <div id="lamaify-intro" style={{
-        background: `linear-gradient(180deg, ${P.parchment} 0%, ${P.parchmentLight} 100%)`,
-        padding: "100px 24px 120px",
-        position: "relative", overflow: "hidden",
-      }}>
+      {/* ── Quiz Menu section ── */}
+      <div id="quiz-menu" style={{ background: "#131d4f", minHeight: "100vh" }}>
+        {/* Navbar */}
+        <nav style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "0 clamp(20px,4vw,48px)", height: 68,
+          borderBottom: "1px solid rgba(232,132,92,0.12)",
+          position: "sticky", top: 0, zIndex: 100,
+          background: "rgba(19,29,79,0.92)", backdropFilter: "blur(12px)",
+        }}>
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            style={{
+              display: "flex", alignItems: "center", gap: 7,
+              background: "none", border: "none", cursor: "pointer",
+              color: "rgba(232,132,92,0.75)",
+              fontSize: 14, fontWeight: 700, fontFamily: "'Poppins', sans-serif",
+              padding: "6px 0", transition: "color 0.18s",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = P.salmon; }}
+            onMouseLeave={e => { e.currentTarget.style.color = "rgba(232,132,92,0.75)"; }}
+          >
+            <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
+              <path d="M12 5L7 10L12 15" stroke="currentColor" strokeWidth="2.4"
+                strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Back
+          </button>
 
-        {/* Subtle background texture blobs */}
-        <div style={{
-          position:"absolute", top:"-60px", right:"-80px",
-          width:340, height:340, borderRadius:"50%",
-          background:`radial-gradient(circle, ${P.parchmentDark} 0%, transparent 70%)`,
-          opacity:0.35, pointerEvents:"none",
-        }} />
-        <div style={{
-          position:"absolute", bottom:"-40px", left:"-60px",
-          width:260, height:260, borderRadius:"50%",
-          background:`radial-gradient(circle, ${P.paper} 0%, transparent 70%)`,
-          opacity:0.5, pointerEvents:"none",
-        }} />
-
-        <div style={{ maxWidth: 860, margin: "0 auto", position: "relative", zIndex: 1 }}>
-
-          {/* Section heading */}
-          <div style={{ textAlign: "center", marginBottom: 64 }}>
-            {/* Decorative rule */}
-            <div style={{ display:"flex", alignItems:"center", gap:16, justifyContent:"center", marginBottom:32 }}>
-              <div style={{ flex:1, maxWidth:80, height:1, background:`linear-gradient(to right, transparent, ${P.gold})` }} />
-              <span style={{ color: P.gold, fontSize:20 }}>✦</span>
-              <div style={{ flex:1, maxWidth:80, height:1, background:`linear-gradient(to left, transparent, ${P.gold})` }} />
-            </div>
-
-            <h2 style={{
-              fontFamily:"'Playfair Display', Georgia, serif",
-              fontSize:"clamp(32px, 5vw, 54px)", fontWeight:900,
-              color: P.brownDark, margin:"0 0 20px", lineHeight:1.1,
-            }}>
-              Learning, reimagined.
-            </h2>
-            <p style={{
-              fontSize:17, color: P.brownMuted, lineHeight:1.75,
-              maxWidth:560, margin:"0 auto", fontWeight:400,
-            }}>
-              Lamaify turns revision into something you actually want to do.
-              Six subjects. Real questions. A shelf that fills up as you grow.
-              No sign-ups. No timers. Just you and what you know.
-            </p>
+          <div style={{ fontSize: 20, fontWeight: 900, letterSpacing: "-0.03em", lineHeight: 1,
+            fontFamily: "'Poppins', sans-serif" }}>
+            <span style={{ color: P.salmon }}>Too</span>
+            <span style={{ color: P.salmonDark }}>Good?</span>
           </div>
 
-          {/* Feature cards */}
+          <div style={{ width: 56 }} />
+        </nav>
+
+        {/* Body */}
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "52px clamp(20px,4vw,48px) 80px" }}>
+          <div style={{ marginBottom: 48 }}>
+            <h1 style={{
+              margin: "0 0 10px",
+              fontFamily: "'Poppins', sans-serif", fontWeight: 900,
+              fontSize: "clamp(28px,4vw,46px)", color: "#ffffff",
+              letterSpacing: "-0.02em", lineHeight: 1.1,
+            }}>Choose Your Quiz</h1>
+            <p style={{
+              margin: 0, fontSize: "clamp(13px,1.2vw,15px)",
+              color: "rgba(255,255,255,0.45)", fontFamily: "'Poppins', sans-serif", fontWeight: 400,
+            }}>Pick a subject and prove you&apos;re TooGood — score 100% to earn its book.</p>
+          </div>
+
           <div style={{
-            display:"grid",
-            gridTemplateColumns:"repeat(auto-fit, minmax(220px, 1fr))",
-            gap:20, marginBottom:72,
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: 24,
           }}>
-            {FEATURES.map((f, i) => (
-              <div key={i} style={{
-                background: P.cream,
-                borderRadius:20,
-                padding:"28px 24px",
-                boxShadow:`0 4px 24px rgba(92,61,17,0.08), 0 0 0 1px rgba(201,168,76,0.18)`,
-                animation:`popIn 0.5s ease ${i * 80}ms both`,
-              }}>
-                <div style={{
-                  width:48, height:48, borderRadius:14,
-                  background:`linear-gradient(135deg, ${P.gold}22, ${P.gold}44)`,
-                  display:"flex", alignItems:"center", justifyContent:"center",
-                  fontSize:24, marginBottom:16,
-                  border:`1px solid ${P.gold}33`,
-                }}>
-                  {f.icon}
-                </div>
-                <h3 style={{
-                  fontFamily:"'Playfair Display', Georgia, serif",
-                  fontSize:18, fontWeight:700, color: P.brown,
-                  margin:"0 0 8px",
-                }}>
-                  {f.title}
-                </h3>
-                <p style={{
-                  fontSize:14, color: P.brownMuted, lineHeight:1.65,
-                  margin:0, fontWeight:400,
-                }}>
-                  {f.desc}
-                </p>
-              </div>
+            {SUBJECTS.map(subj => (
+              <QuizCard
+                key={subj.id}
+                subj={subj}
+                onClick={() => startQuiz?.(subj)}
+                completed={completed}
+              />
             ))}
           </div>
 
-          {/* Subject pill strip */}
-          <div style={{ textAlign:"center", marginBottom:64 }}>
-            <p style={{
-              fontSize:11, fontWeight:700, letterSpacing:"0.14em",
-              textTransform:"uppercase", color: P.goldMuted, marginBottom:16,
-            }}>
-              Subjects available
-            </p>
-            <div style={{ display:"flex", flexWrap:"wrap", gap:10, justifyContent:"center" }}>
-              {SUBJECTS.map(s => (
-                <span key={s.id} style={{
-                  background: s.bg, color: s.accent,
-                  borderRadius:100, padding:"7px 18px",
-                  fontSize:13, fontWeight:700,
-                  border:`1px solid ${s.accent}33`,
-                  display:"flex", alignItems:"center", gap:6,
-                }}>
-                  {s.icon} {s.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Divider + CTA */}
-          <div style={{ textAlign:"center" }}>
+          {completed.length > 0 && (
             <div style={{
-              width:60, height:3, borderRadius:100,
-              background:`linear-gradient(to right, ${P.gold}, ${P.goldLight})`,
-              margin:"0 auto 40px",
-            }} />
-            <p style={{
-              fontFamily:"'Playfair Display', Georgia, serif",
-              fontSize:22, fontStyle:"italic", color: P.brownMuted,
-              margin:"0 0 32px",
+              marginTop: 56, padding: "22px 28px", borderRadius: 16,
+              background: "rgba(232,132,92,0.08)", border: `1px solid rgba(232,132,92,0.2)`,
+              display: "flex", alignItems: "center", gap: 16,
             }}>
-              Ready to see what you know?
-            </p>
-            <button
-              onClick={goMenu}
-              style={{
-                background: P.gold,
-                color: P.brownDark, border:"none",
-                borderRadius:100, padding:"18px 72px",
-                fontSize:16, fontWeight:800,
-                fontFamily:"'Outfit', sans-serif",
-                cursor:"pointer", letterSpacing:"0.05em",
-                boxShadow:`0 8px 32px rgba(218,165,32,0.4)`,
-                transition:"transform 0.18s, box-shadow 0.18s",
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.transform = "translateY(-3px)";
-                e.currentTarget.style.boxShadow = `0 14px 40px rgba(218,165,32,0.55)`;
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.transform = "";
-                e.currentTarget.style.boxShadow = `0 8px 32px rgba(218,165,32,0.4)`;
-              }}
-            >
-              Start Learning
-            </button>
-          </div>
+              <span style={{ fontSize: 28 }}>📚</span>
+              <div>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: P.salmon, fontFamily: "'Poppins', sans-serif" }}>
+                  {completed.length} of {SUBJECTS.length} books earned
+                </p>
+                <p style={{ margin: "2px 0 0", fontSize: 12, color: "rgba(232,132,92,0.55)", fontFamily: "'Poppins', sans-serif" }}>
+                  Score 100% on every quiz to fill your shelf.
+                </p>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

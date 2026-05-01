@@ -1,7 +1,7 @@
 export function FontLink() {
   return (
     <link
-      href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     />
   );
@@ -12,9 +12,9 @@ export function GlobalStyles() {
     <style>{`
       * { box-sizing: border-box; }
       ::-webkit-scrollbar { width: 8px; }
-      ::-webkit-scrollbar-track { background: #E8D5A8; }
-      ::-webkit-scrollbar-thumb { background: #C9A84C; border-radius: 4px; }
-      ::-webkit-scrollbar-thumb:hover { background: #DAA520; }
+      ::-webkit-scrollbar-track { background: #C05840; }
+      ::-webkit-scrollbar-thumb { background: #1E2D72; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #2A3D8A; }
 
       @keyframes popIn {
         0%   { opacity: 0; transform: scale(0.88) translateY(10px); }
@@ -103,10 +103,10 @@ export function GlobalStyles() {
         92%  { transform: translateX(0px) translateY(-3px); }
         100% { transform: translateX(0px) translateY(0px);  }
       }
-      /* wax-seal CTA glow */
+      /* CTA glow */
       @keyframes waxPulse {
-        0%, 100% { box-shadow: 0 0 0   0   rgba(218,165,32,0); }
-        50%      { box-shadow: 0 0 22px 8px rgba(218,165,32,0.4); }
+        0%, 100% { box-shadow: 0 0 0   0   rgba(30,45,114,0); }
+        50%      { box-shadow: 0 0 22px 8px rgba(30,45,114,0.45); }
       }
       /* subject row slide-in */
       @keyframes rowSlideIn {
