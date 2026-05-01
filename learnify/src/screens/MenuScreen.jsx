@@ -266,7 +266,7 @@ export default function MenuScreen({ visible, goLanding, startQuiz, completed })
       <div style={{
         maxWidth: 1120,
         margin: "0 auto",
-        padding: "52px clamp(20px,4vw,48px) 80px",
+        padding: "52px clamp(20px,4vw,48px) 148px",
       }}>
         {/* Heading */}
         <div style={{ marginBottom: 48 }}>
@@ -288,7 +288,7 @@ export default function MenuScreen({ visible, goLanding, startQuiz, completed })
             fontFamily: "'Poppins', sans-serif",
             fontWeight: 400,
           }}>
-            Pick a subject and prove you&apos;re TooGood — score 100% to earn its book.
+            Pick a subject and prove you&apos;re TooGood — score 100% to light up a checkpoint.
           </p>
         </div>
 
@@ -308,35 +308,6 @@ export default function MenuScreen({ visible, goLanding, startQuiz, completed })
           ))}
         </div>
 
-        {/* Bookshelf teaser */}
-        {completed.length > 0 && (
-          <div style={{
-            marginTop: 56,
-            padding: "22px 28px",
-            borderRadius: 16,
-            background: "rgba(232,132,92,0.08)",
-            border: `1px solid rgba(232,132,92,0.2)`,
-            display: "flex",
-            alignItems: "center",
-            gap: 16,
-          }}>
-            <span style={{ fontSize: 28 }}>📚</span>
-            <div>
-              <p style={{
-                margin: 0, fontWeight: 700, fontSize: 14,
-                color: P.salmon, fontFamily: "'Poppins', sans-serif",
-              }}>
-                {completed.length} of {SUBJECTS.length} books earned
-              </p>
-              <p style={{
-                margin: "2px 0 0", fontSize: 12,
-                color: "rgba(232,132,92,0.55)", fontFamily: "'Poppins', sans-serif",
-              }}>
-                Score 100% on every quiz to fill your shelf.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );

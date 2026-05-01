@@ -1,19 +1,13 @@
 import { P, SUBJECTS } from "../constants";
 import { FontLink, GlobalStyles } from "../GlobalStyles";
-import geographyImg from "../assets/geography.png";
-import numbersImg from "../assets/numbers.png";
-import logicImg from "../assets/logic.png";
-import readingImg from "../assets/reading.png";
-import historyImg from "../assets/history.png";
-import scienceImg from "../assets/science.png";
 
 const CARD_IMAGES = {
-  geography: geographyImg,
-  math:      numbersImg,
-  logic:     logicImg,
-  language:  readingImg,
-  history:   historyImg,
-  science:   scienceImg,
+  geography: "/assets/geography.png",
+  math:      "/assets/numbers.png",
+  logic:     "/assets/logic.png",
+  language:  "/assets/reading.png",
+  history:   "/assets/history.png",
+  science:   "/assets/science.png",
 };
 
 // ── Per-subject card metadata ─────────────────────────────────────────────────
@@ -377,7 +371,7 @@ export default function LandingScreen({ visible, goMenu, startQuiz, completed = 
         </nav>
 
         {/* Body */}
-        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "52px clamp(20px,4vw,48px) 80px" }}>
+        <div style={{ maxWidth: 1120, margin: "0 auto", padding: "52px clamp(20px,4vw,48px) 148px" }}>
           <div style={{ marginBottom: 48 }}>
             <h1 style={{
               margin: "0 0 10px",
@@ -388,7 +382,7 @@ export default function LandingScreen({ visible, goMenu, startQuiz, completed = 
             <p style={{
               margin: 0, fontSize: "clamp(13px,1.2vw,15px)",
               color: "rgba(255,255,255,0.45)", fontFamily: "'Poppins', sans-serif", fontWeight: 400,
-            }}>Pick a subject and prove you&apos;re TooGood — score 100% to earn its book.</p>
+            }}>Pick a subject and prove you&apos;re TooGood — score 100% to light up a checkpoint.</p>
           </div>
 
           <div style={{
@@ -406,23 +400,6 @@ export default function LandingScreen({ visible, goMenu, startQuiz, completed = 
             ))}
           </div>
 
-          {completed.length > 0 && (
-            <div style={{
-              marginTop: 56, padding: "22px 28px", borderRadius: 16,
-              background: "rgba(232,132,92,0.08)", border: `1px solid rgba(232,132,92,0.2)`,
-              display: "flex", alignItems: "center", gap: 16,
-            }}>
-              <span style={{ fontSize: 28 }}>📚</span>
-              <div>
-                <p style={{ margin: 0, fontWeight: 700, fontSize: 14, color: P.salmon, fontFamily: "'Poppins', sans-serif" }}>
-                  {completed.length} of {SUBJECTS.length} books earned
-                </p>
-                <p style={{ margin: "2px 0 0", fontSize: 12, color: "rgba(232,132,92,0.55)", fontFamily: "'Poppins', sans-serif" }}>
-                  Score 100% on every quiz to fill your shelf.
-                </p>
-              </div>
-            </div>
-          )}
         </div>
       </div>
     </div>

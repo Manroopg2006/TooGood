@@ -1,13 +1,14 @@
 import { useState, useCallback } from "react";
 import { getQuizQuestions } from "./constants.js";
-
-function pickQuestions(subjectId) {
-  return getQuizQuestions(subjectId);
-}
 import GlobeQuiz from "./GlobeQuiz.jsx";
 import LandingScreen from "./screens/LandingScreen.jsx";
 import QuizScreen from "./screens/QuizScreen.jsx";
 import ResultScreen from "./screens/ResultScreen.jsx";
+import PixelProgressBar from "./components/PixelProgressBar.jsx";
+
+function pickQuestions(subjectId) {
+  return getQuizQuestions(subjectId);
+}
 
 export default function LearnifyApp() {
   const [screen,       setScreen]       = useState("landing");
@@ -76,46 +77,48 @@ export default function LearnifyApp() {
     }, 900);
   }, [selected, quizQuestions, qIndex, score, go, markCompleted, subject]);
 
-  if (screen === "globequiz") return (
-    <GlobeQuiz
-      onExit={goMenu}
-      onComplete={(finalScore) => { if (finalScore === 10) markCompleted("geography"); }}
-    />
-  );
-
-  if (screen === "landing") return (
-    <LandingScreen
-      visible={visible}
-      goMenu={goMenu}
-      startQuiz={startQuiz}
-      completed={completed}
-    />
-  );
-
-  if (screen === "quiz") return (
-    <QuizScreen
-      visible={visible}
-      subject={subject}
-      qIndex={qIndex}
-      selected={selected}
-      score={score}
-      questions={quizQuestions}
-      handleAnswer={handleAnswer}
-      goMenu={goMenu}
-    />
-  );
-
-  if (screen === "result") return (
-    <ResultScreen
-      visible={visible}
-      subject={subject}
-      score={score}
-      total={quizQuestions.length}
-      onPlayAgain={() => {
-        const questions = pickQuestions(subject.id);
-        go("quiz", () => { setSubject(subject); setQIndex(0); setSelected(null); setScore(0); setQuizQuestions(questions); });
-      }}
-      onBackToMenu={goMenu}
-    />
+  return (
+    <>
+      {screen === "globequiz" && (
+        <GlobeQuiz
+          onExit={goMenu}
+          onComplete={(finalScore) => { if (finalScore === 10) markCompleted("geography"); }}
+        />
+      )}
+      {screen === "landing" && (
+        <LandingScreen
+          visible={visible}
+          goMenu={goMenu}
+          startQuiz={startQuiz}
+          completed={completed}
+        />
+      )}
+      {screen === "quiz" && (
+        <QuizScreen
+          visible={visible}
+          subject={subject}
+          qIndex={qIndex}
+          selected={selected}
+          score={score}
+          questions={quizQuestions}
+          handleAnswer={handleAnswer}
+          goMenu={goMenu}
+        />
+      )}
+      {screen === "result" && (
+        <ResultScreen
+          visible={visible}
+          subject={subject}
+          score={score}
+          total={quizQuestions.length}
+          onPlayAgain={() => {
+            const questions = pickQuestions(subject.id);
+            go("quiz", () => { setSubject(subject); setQIndex(0); setSelected(null); setScore(0); setQuizQuestions(questions); });
+          }}
+          onBackToMenu={goMenu}
+        />
+      )}
+      <PixelProgressBar completed={completed} />
+    </>
   );
 }
