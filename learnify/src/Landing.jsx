@@ -118,7 +118,7 @@ export default function LearnifyApp() {
           onBackToMenu={goMenu}
         />
       )}
-      <PixelProgressBar completed={completed} />
+      {screen === "landing" && <PixelProgressBar completed={completed} />}
     </>
   );
 }
